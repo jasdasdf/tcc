@@ -15,19 +15,19 @@ import pathlib
 import librosa 
 
 # diretório de trabalho/desenvolviemnto
-pasta_de_trabalho = pathlib.Path('G:/Meu Drive/Adaptive Noise Canceling/TCC/Desenvolvimento/')
+pasta_de_trabalho = pathlib.Path('C:/Users/RAFAEL/Desktop')
 
 # pastas a serem geradas/utilizadas
-audios = pathlib.Path('audios')
+audios = pasta_de_trabalho / 'audios'
 ruido_pasta= audios / 'ruido'
 
 # pasta que contem os arquivos de áudio
-ITU_audios = pathlib.Path('PORTUGUESE(BRAZILIAN)')
-ruidos_Loizou = pathlib.Path('Loizou')
+ITU_audios = pasta_de_trabalho / 'PORTUGUESE(BRAZILIAN)'
+ruidos_Loizou = pasta_de_trabalho / 'Loizou'
 
 # inserir pastas necessárias
 import sys
-sys.path.insert(0 ,'functions/')
+sys.path.insert(0 ,'tcc/scripts/functions/')
 
 # importar as função criadas presente na pasta functions
 
@@ -106,6 +106,8 @@ balburdia, fs = librosa.core.load(ruidos_Loizou/'cafeteria_babble.wav', sr=fs)
 balburdia = balburdia[:t * fs]
 
 librosa.output.write_wav(ruido_pasta/'balburdia.wav', balburdia, fs, norm=False)
+
+#%%
 
 ###############################################################################
 
