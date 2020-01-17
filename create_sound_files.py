@@ -21,6 +21,7 @@ pasta_de_trabalho = pathlib.Path('C:/Users/RAFAEL/Desktop')
 audios = pasta_de_trabalho / 'audios'
 ruido_pasta= audios / 'ruido'
 
+
 # pasta que contem os arquivos de áudio
 ITU_audios = pasta_de_trabalho / 'PORTUGUESE(BRAZILIAN)'
 ruidos_Loizou = pasta_de_trabalho / 'Loizou'
@@ -91,7 +92,7 @@ jackhammer_noise = jackhammer_noise[:t * fs]
 obras = crane_noise + jackhammer_noise
 
 # normaliza o sinal para não haver clip
-obras = obras/max(obras)
+# obras = obras/max(obras)
 
 librosa.output.write_wav(ruido_pasta / 'obras.wav', obras, fs, norm=False)
 
@@ -107,106 +108,7 @@ balburdia = balburdia[:t * fs]
 
 librosa.output.write_wav(ruido_pasta/'balburdia.wav', balburdia, fs, norm=False)
 
-#%%
 
-###############################################################################
-
-
-
-# #                     ANALISA O 'NÚMERO MÁGICO' PARA GERAR
-# #                          OS ARQUIVOS DE BAIXA SNR
-
-# # analisa a composição com a menor SNR para determinar o fator de divisão 
-# # adequado para todos os arquivos contaminados
-
-
-# import soundfile as sf
-# import sounddevice as sd
-
-# #  importa a planta
-# [w0, ERL, K ]= mf.echopath(4,0,6,128)
-
-# #  garante que a planta possui norma unitária
-# w0 = w0 / np.sqrt(np.dot(w0, w0))
-
-# # lista do diretório dos audios
-# speech_directory = sorted(list(ITU_audios.glob('*.wav')))
-# noise_directory = sorted(list(ruido_pasta.glob('*.wav')))
-
-# magic_number = 1;
-
-# l=0
-# for i in speech_directory:
-#         for j in noise_directory:
-            
-#             cleanfile, fs = librosa.core.load(i, sr=16000)
-#             noisefile, fs = sf.read(j)
-            
-            
-#             cleanfile = cleanfile/7
-#             noisefile = noisefile/7
-            
-#             noisefile = signal.lfilter(w0, 1, noisefile.copy()) 
-            
-            
-#             del l
-#             l = mf.addnoise_asl(cleanfile, noisefile, 16, 16000, -20) 
-            
-#             max_p = abs(max(l)) 
-#             max_n = abs(min(l)) 
-            
-#             if max_p> magic_number :
-#                 magic_number = max_p
-#                 print(magic_number)
-#                 print(i,j)
-#             elif max_n > magic_number:
-#                 magic_number = max_n
-#                 print(magic_number)
-#                 print(i,j)
-
-
-
-# magic_number = int(np.ceil(magic_number))
-
-
-###############################################################################
-
-
-
-import soundfile as sf
-import sounddevice as sd
-
-#                   AJUSTA OS AUDIOS E OS RUIDOS
-
-
-magic_number = 1
-
-audios_ajustados = audios / 'audios_ajustados'
-ruidos_ajustados = audios / 'ruidos_ajustados'
-
-pathlib.Path(audios_ajustados).mkdir(parents=True, exist_ok=True)                    
-pathlib.Path(ruidos_ajustados).mkdir(parents=True, exist_ok=True)
-
-speech_directory = sorted(list(ITU_audios.glob('*.wav')))
-noise_directory = sorted(list(ruido_pasta.glob('*.wav')))
-
-for audio in speech_directory:
-     
-    file, fs = librosa.core.load(audio, 16000)
-    
-    file = file/magic_number
-    
-    librosa.output.write_wav(audios_ajustados / audio.parts[1], file, 16000)
-    
-for ruido in noise_directory:
-    
-    file, fs = sf.read(ruido, dtype='float32')
-    
-    file = file/magic_number
-    
-    librosa.output.write_wav(ruidos_ajustados / ruido.parts[2], file, 16000)
-    
-  
 
 ##      GERA OS ARQUIVOS 
                       # AUDIOS DE TESTE
@@ -223,72 +125,126 @@ w0 = w0 / np.sqrt(np.dot(w0, w0))
 # gera pastas
 audios_contaminados = audios / 'audios_contaminados'
 audios_teste = audios / 'audios_teste'
+ruidos_ajustados = audios / 'ruidos_ajustados'
+audios_ajustados = audios / 'audios_ajustados'
 
 pathlib.Path(audios_contaminados).mkdir(parents=True, exist_ok=True)
 pathlib.Path(audios_teste).mkdir(parents=True, exist_ok=True)       
-                     
+pathlib.Path(ruidos_ajustados).mkdir(parents = True, exist_ok = True);
+pathlib.Path(audios_ajustados).mkdir(parents = True, exist_ok = True);
+                    
 # lista os arquivos         
-sinal_directory = sorted(list(audios_ajustados.glob('*.wav')))
-ruido_directory = sorted(list(ruidos_ajustados.glob('*.wav')))
+sinal_directory = sorted(list(ITU_audios.glob('*.wav')))
+ruido_directory = sorted(list(ruido_pasta.glob('*.wav')))
 
 
 for ruido in ruido_directory:
     
-    # Gera uma pasta para o tipo de ruído na pasta de audios_teste
-    path_name = pathlib.Path(ruido.parts[2][:-4])    
-    path_test_directory = audios_teste / path_name    
-    path_test_directory.mkdir(parents = True, exist_ok = True)
+    # Ruido analizado  (obras, balburdia, wgn)
+    noise_name = pathlib.Path(ruido.parts[6][:-4])    
     
-    # Gera uma pasta para o tipo de ruído na pasta auidos_contaminados
-    path_contaminados_directory = audios_contaminados / path_name    
-    path_contaminados_directory.mkdir(parents=True, exist_ok=True)  
+    path_test_directory = audios_teste / noise_name 
+    path_ruido_ajustado = ruidos_ajustados / noise_name
+    path_audio_ajustado = audios_ajustados / noise_name
+    path_audios_contaminados = audios_contaminados / noise_name
     
-    # carrega o arquivo de ruído ajustado    
-    ruido_data, fs = sf.read(ruido, dtype='float32')
-     
-    # copia para um auxiliar
-    ruido_aux = ruido_data.copy()
+    pathlib.Path(path_test_directory).mkdir(parents = True, exist_ok = True)
+    pathlib.Path(path_ruido_ajustado).mkdir(parents = True, exist_ok = True)
+    pathlib.Path(path_audio_ajustado).mkdir(parents = True, exist_ok = True)
+    pathlib.Path(path_audios_contaminados).mkdir(parents = True, exist_ok = True)
     
-    # filtra o ruido pela planta escolhida
-    ruido_filtrado = signal.lfilter(w0, 1, ruido_aux)
     
-    print(path_name)
+    print(noise_name)
     
     for audio in sinal_directory:
     
-        sinal, fs = sf.read(audio, dtype='float32')
+        sinal, fs = librosa.core.load(audio, sr = 16000)
         
-        name = audio.parts[2][:-4]
+        audio_name = audio.parts[5][:-4]
         
-        path = path_contaminados_directory / name        
-        path.mkdir(parents = True, exist_ok=True)
-        
-        
-        path = path_test_directory / name
+        path = path_test_directory / audio_name
         path.mkdir(parents=True, exist_ok=True)
         
-        print(name)
+        path = path_ruido_ajustado / audio_name
+        path.mkdir(parents=True, exist_ok=True)
+        
+        path = path_audio_ajustado / audio_name
+        path.mkdir(parents=True, exist_ok=True)
+        
+        path = path_audios_contaminados / audio_name       
+        path.mkdir(parents = True, exist_ok=True)
+        
+        print(audio_name)
         
         for snr in range(lim_inf_dB, lim_sup_dB+1, step_dB):
-
-            sinal_ruido = mf.addnoise_asl(sinal, ruido_filtrado, 16, 16000, snr)
             
-            ruido_sinal_ruido = [[a, b] for a,b in zip(ruido_data, sinal_ruido)]
+            # carrega o arquivo de ruído    
+            ruido_data, fs = librosa.core.load(ruido, sr=16000)
+             
+            # copia para um auxiliar
+            ruido_aux = ruido_data.copy()
+            
+            sinal_aux = sinal.copy()
+            
+            # filtra o ruido pela planta escolhida
+            ruido_filtrado = signal.lfilter(w0, 1, ruido_aux)    
+            
+            sinal_ruido = mf.addnoise_asl(sinal_aux, ruido_filtrado, 16, 16000, snr)
+            
+            
+            magic_number = 1.0
+            while(1):
+                # copia para um auxiliar
+                ruido_aux = ruido_data.copy()
+                
+                sinal_aux = sinal.copy()
+                
+                if magic_number != 1.0:
+                    sinal_aux = (sinal_aux/magic_number)*(32767/32768)
+                        
+                    ruido_aux = (ruido_aux/magic_number)*(32767/32768)
+                
+                # filtra o ruido pela planta escolhida
+                ruido_filtrado = signal.lfilter(w0, 1, ruido_aux)    
+                
+                sinal_ruido = mf.addnoise_asl(sinal_aux, ruido_filtrado, 16, 16000, snr)
+            
+                if (max(abs(min(sinal_ruido)), max(sinal_ruido)) >= 1.0):
+                    magic_number = magic_number+1
+                                        
+                else:
+                    break
+                
+            
+            print(magic_number)
+            
+            print("abs = %f " % (max(abs(min(sinal_ruido)), max(sinal_ruido))))
+            
+            ruido_sinal_ruido = [[a, b] for a,b in zip(ruido_aux, sinal_ruido)]
+            
+            ruido_sinal_ruido = np.array(ruido_sinal_ruido)
             
             if snr <0 and snr > -10:
                 # nome
-                file_name = '%s_SNR_-0%s_dB.wav'%(name,abs(snr))
+                file_name = '%s_SNR_-0%s_dB.wav'%(audio_name,abs(snr))
             elif snr >= 0 and snr <10:
-                file_name = '%s_SNR_0%s_dB.wav'%(name,snr)
+                file_name = '%s_SNR_0%s_dB.wav'%(audio_name,snr)
             else:  
                 # nome
-                file_name = '%s_SNR_%s_dB.wav'%(name,snr)
+                file_name = '%s_SNR_%s_dB.wav'%(audio_name,snr)
             
-            file_arq = path_contaminados_directory / name  / file_name
-            sf.write(file_arq, sinal_ruido, 16000)
             
-            file_arq = path / file_name
-            sf.write(file_arq, ruido_sinal_ruido, 16000)
+            file_arq = path_test_directory / audio_name / file_name
+            librosa.output.write_wav(file_arq, ruido_sinal_ruido, 16000, norm=False)
+            
+            file_arq = path_ruido_ajustado / audio_name / file_name
+            librosa.output.write_wav(file_arq, ruido_aux, 16000, norm=False)
+            
+            file_arq = path_audio_ajustado / audio_name / file_name
+            librosa.output.write_wav(file_arq, sinal_aux, 16000, norm=False)            
+            
+            file_arq = path_audios_contaminados / audio_name / file_name
+            librosa.output.write_wav(file_arq, sinal_ruido, 16000, norm=False) 
             
             print(snr)
  
