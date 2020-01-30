@@ -3,8 +3,11 @@
 #include "audio.h"
 #include "my_functions.h"
 #include "arm_math.h"
+//#include "gpio.h"
 
-#define N   128
+
+
+#define N   256
 
 //parametros  do filtro nlms
 float32_t w[N] = { 0.0f };
@@ -39,50 +42,45 @@ void proces_buffer(void)
     audio_chR = (audio_in & 0x0000FFFF);
 
     audio_chL = (audio_in>>16 & 0x0000FFFF);
-    
-    switch(press){
-        case 0:
-        
-            audio_out =  audio_in;  
-        
-        break;
-        
-        case 1:
-            // referência de ruído
-            refnoise = (float32_t)audio_chL;
-				
-            //desejado
-            d = (float32_t)audio_chR;
-				
-            //shift do vetor "x"		
-            memmove(&x[1], &x[0], (N-1)*sizeof(float32_t));
-		  
-            //novo valor de referência armazenado
-            x[0]=refnoise;
-		  
-						//energia do sinal "x".
-            arm_power_f32(x,N, &energy);	
-                    
-            //estima a saída "d_hat"
-            arm_dot_prod_f32(w,x,N,&d_hat); 	
+  
+//		gpio_set(TEST_PIN, HIGH);
 
-            //erro.
-            e = d-d_hat;
-				            
-            //calcula o fator de adaptação.
-            arm_scale_f32(x, MU*e/(energy+ep),fact, N); 
-            
-            //atualiza os coeficientes do filtro.
-            arm_add_f32(w, fact, w, N);
-                            
-            //out
-            int_out = (int16_t)e;
-            audio_out = ((int_out<<16 & 0xFFFF0000)) + (int_out & 0x0000FFFF);
-            
-        break;
-    
-    }
-         
+
+		// referência de ruído
+		refnoise = (float32_t)audio_chL;
+
+		//desejado
+		d = (float32_t)audio_chR;
+
+		//shift do vetor "x"		
+		memmove(&x[1], &x[0], (N-1)*sizeof(float32_t));
+
+		//novo valor de referência armazenado
+		x[0]=refnoise;
+
+		//energia do sinal "x".
+		arm_power_f32(x,N, &energy);	
+						
+		//estima a saída "d_hat"
+		arm_dot_prod_f32(w,x,N,&d_hat); 	
+
+		//erro.
+		e = d-d_hat;
+						
+		//calcula o fator de adaptação.
+		arm_scale_f32(x, MU*e/(energy+ep),fact, N); 
+		
+		//atualiza os coeficientes do filtro.
+		arm_add_f32(w, fact, w, N);
+		 
+//		gpio_set(TEST_PIN, LOW);
+
+
+		
+		//out
+		int_out = (int16_t)e;
+		audio_out = ((int_out<<16 & 0xFFFF0000)) + (int_out & 0x0000FFFF);
+//    audio_out = ((audio_chR<<16 & 0xFFFF0000)) + (audio_chR & 0x0000FFFF);    
      // audio de saída
     *txbuf = audio_out;
     
@@ -92,14 +90,17 @@ void proces_buffer(void)
 
 //Main function
 int main (void) { 
-    
+	
+	
     system_init();    
-    audio_init (hz8000, line_in, dma, DMA_HANDLER);
+    audio_init (hz32000, line_in, dma, DMA_HANDLER);
+	
+
 
 while(1){
 	while (!(rx_buffer_full && tx_buffer_empty)){};
-        gpio_set(TEST_PIN, HIGH);
+        
 				proces_buffer();
-        gpio_set(TEST_PIN, LOW);
+
 	}
 }

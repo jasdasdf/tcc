@@ -30,6 +30,9 @@ import sys
 sys.path.insert(0 ,'functions')
 import adaptive as adpt
 
+import matplotlib.pyplot as plt
+import sounddevice as sd
+
 
 def echopath(modelo,fig,ERL,Mord):
 
@@ -377,8 +380,7 @@ def addnoise_asl(cleanfile, noisefile, nbits, fs, snr):
     
     outfile = noisy.copy()
   
-    return outfile
-
+    return outfile, rand_start
 
 
 def bin_interp(upcount, lwcount, upthr, lwthr, Margin, tol):

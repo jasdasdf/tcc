@@ -37,7 +37,6 @@ void init_npvss_nlms(){
 	power_error = 0.0;
 	var_e=0;
 	var_x=0;
-	d_hat=0, e=0, d=0;
 
 	return;
 }

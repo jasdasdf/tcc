@@ -94,10 +94,10 @@ i2c_init(); //Configure the I2C module
 //TIP; WM8731 registers are 9 bits. MSB have to be write on the LSB of the register address but, because in our configurations this bit is always 0, this program doesn’t write it
 delay_us(100);
 Codec_WriteRegister ( WM8731_RESET, 0x00);   						//Reset
-Codec_WriteRegister ( WM8731_LLINEIN, 0x19); 						//0x19f	//Left Line In. Select gain 0dB.
-Codec_WriteRegister ( WM8731_RLINEIN, 0x19); 						//0x19f	//Right Line In. Select gain 0dB.
-Codec_WriteRegister ( WM8731_LHEADOUT, 0x79);			    	//Left Headphone Out. Select volume; 7F=+6dB, 30=-73dB; 79 steps, 1dB each.  
-Codec_WriteRegister ( WM8731_RHEADOUT, 0x79);						//Right Headphone Out (6F = -9dB).
+Codec_WriteRegister ( WM8731_LLINEIN, 0x17); 						//0x19f	//Left Line In. Select gain 0dB.
+Codec_WriteRegister ( WM8731_RLINEIN, 0x17); 						//0x19f	//Right Line In. Select gain 0dB.
+Codec_WriteRegister ( WM8731_LHEADOUT, 0x73);			    	//Left Headphone Out. Select volume; 7F=+6dB, 30=-73dB; 79 steps, 1dB each.  
+Codec_WriteRegister ( WM8731_RHEADOUT, 0x73);						//Right Headphone Out (6F = -9dB).
 Codec_WriteRegister ( WM8731_ANALOG, audio_input); 			//Select input; LINE in or microphone in. 
 Codec_WriteRegister ( WM8731_DIGITAL, 0x00); 						//Audio Path Control, no filters, no soft mute.
 Codec_WriteRegister ( WM8731_POWERDOWN, 0x00); 			  	//Power control ->Disable power down; all on.

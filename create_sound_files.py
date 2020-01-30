@@ -137,7 +137,7 @@ pathlib.Path(audios_ajustados).mkdir(parents = True, exist_ok = True);
 sinal_directory = sorted(list(ITU_audios.glob('*.wav')))
 ruido_directory = sorted(list(ruido_pasta.glob('*.wav')))
 
-
+#%%
 for ruido in ruido_directory:
     
     # Ruido analizado  (obras, balburdia, wgn)
@@ -158,7 +158,7 @@ for ruido in ruido_directory:
     
     for audio in sinal_directory:
     
-        sinal, fs = librosa.core.load(audio, sr = 16000)
+        sinal, fs = librosa.core.load(audio, sr =16000)
         
         audio_name = audio.parts[5][:-4]
         
@@ -189,7 +189,7 @@ for ruido in ruido_directory:
             # filtra o ruido pela planta escolhida
             ruido_filtrado = signal.lfilter(w0, 1, ruido_aux)    
             
-            sinal_ruido = mf.addnoise_asl(sinal_aux, ruido_filtrado, 16, 16000, snr)
+            sinal_ruido, rand_start = mf.addnoise_asl(sinal_aux, ruido_filtrado, 16, 16000, snr)
             
             
             magic_number = 1.0
@@ -207,7 +207,7 @@ for ruido in ruido_directory:
                 # filtra o ruido pela planta escolhida
                 ruido_filtrado = signal.lfilter(w0, 1, ruido_aux)    
                 
-                sinal_ruido = mf.addnoise_asl(sinal_aux, ruido_filtrado, 16, 16000, snr)
+                sinal_ruido, rand_start = mf.addnoise_asl(sinal_aux, ruido_filtrado, 16, 16000, snr)
             
                 if (max(abs(min(sinal_ruido)), max(sinal_ruido)) >= 1.0):
                     magic_number = magic_number+1
@@ -219,6 +219,8 @@ for ruido in ruido_directory:
             print(magic_number)
             
             print("abs = %f " % (max(abs(min(sinal_ruido)), max(sinal_ruido))))
+            
+            ruido_aux = ruido_aux[rand_start : (rand_start + sinal_aux.size )]
             
             ruido_sinal_ruido = [[a, b] for a,b in zip(ruido_aux, sinal_ruido)]
             

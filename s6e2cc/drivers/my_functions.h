@@ -2,6 +2,7 @@
 
 #include "platform.h"
 #include "s6e2cc.h"
+#include "audio.h"
 
 char debouncing[3]={0};
 char status;
@@ -49,9 +50,9 @@ void Led_off(){
 void init_leds(){
     
     // Init GPIO pin function (LED's)
-		gpio_set_mode(LED_R, Output); // azul
+	gpio_set_mode(LED_R, Output); // azul
     gpio_set_mode(LED_G, Output); // vermelho
-		gpio_set_mode(LED_B, Output); // verde
+	gpio_set_mode(LED_B, Output); // verde
     Led_off();
     return;
 
@@ -65,25 +66,25 @@ void botao(){
       
     status = ((((debouncing[2])^255) | debouncing[1])|debouncing[0]);
 			// debouncing
-			
-		if(status!=(char)255) // se estatus é diferente de 255 o botão 
+		
+	if(status!=(char)255) // se estatus é diferente de 255 o botão 
 	  					// foi pressionado
     {
-			press+=1; // incrementa a variável press
-			if(press==1){									// quando press igual a 1
-				Led_On('B');	// liga o led azul.	
-			}
-			if(press==2){			// se igual a 2
-				Led_off();  	// desliga todos os leds.
-				press=0;
-			}	
+		press+=1; // incrementa a variável press
+		if(press==1){									// quando press igual a 1
+			Led_On('B');	// liga o led azul.	
+		}
+		if(press==2){			// se igual a 2
+			Led_off();  	// desliga todos os leds.
+			press=0;
+		}	
     }			
 	return; 
 }
 
 
 void SysTick_Handler(void)  {                               
-    test++;
+//    test++;
     botao();
 }
 
@@ -125,11 +126,11 @@ void DMA_HANDLER (void)
 
 void system_init(){
     
-    // inicia os leds
-    init_leds();
-	
-    // configura systick
-    SysTick_Config(SystemCoreClock / 1000);
+//    // inicia os leds
+//    init_leds();
+//    
+//    // configura systick
+//    SysTick_Config(SystemCoreClock / 1000);
     
     return;
 }
