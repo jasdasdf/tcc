@@ -4,6 +4,7 @@
 #include "my_functions.h"
 #include "arm_math.h"
 //#include "gpio.h"
+#include "uart_io.h"
 
 
 
@@ -98,6 +99,12 @@ int main (void) {
 
 
 while(1){
+	
+	
+	Uart_Io_Init();/* Initializatio of the UART unit and GPIO used in the communication */
+  
+	printf("Welcome to use Cypress PDL 2.1!\n");
+	
 	while (!(rx_buffer_full && tx_buffer_empty)){};
         
 				proces_buffer();
