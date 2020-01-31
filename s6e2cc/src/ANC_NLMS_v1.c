@@ -8,7 +8,7 @@
 
 
 
-#define N   256
+#define N   128
 
 //parametros  do filtro nlms
 float32_t w[N] = { 0.0f };
@@ -92,22 +92,28 @@ void proces_buffer(void)
 //Main function
 int main (void) { 
 	
+		
 	
-    system_init();    
-    audio_init (hz32000, line_in, dma, DMA_HANDLER);
+    system_init(); 
+		Uart_Io_Init();/* Initializatio of the UART unit and GPIO used in the communication */
 	
+		
+	
+		
 
+  
+    audio_init (hz8000, line_in, dma, DMA_HANDLER);
+	
+		
+
+		
 
 while(1){
-	
-	
-	Uart_Io_Init();/* Initializatio of the UART unit and GPIO used in the communication */
-  
-	printf("Welcome to use Cypress PDL 2.1!\n");
 	
 	while (!(rx_buffer_full && tx_buffer_empty)){};
         
 				proces_buffer();
+		jujuba("Welcome to use Cypress PDL 2.1!\n");
 
 	}
 }
