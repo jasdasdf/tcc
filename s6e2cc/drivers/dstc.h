@@ -9,7 +9,9 @@
 
 #define PING 0x00
 #define PONG 0x01
-#define DMA_BUFFER_SIZE 1 //Max 256
+#define DMA_BUFFER_SIZE 256 //Max 256
+
+#include "s6e2cc.h"
 
 /******************************************************************************
  * Global type definitions

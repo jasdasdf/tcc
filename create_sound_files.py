@@ -55,7 +55,7 @@ pathlib.Path(ruido_pasta).mkdir(parents=True, exist_ok=True)
 
 
 # taxa de amostragem utilizada nos testes (8 kHz ou 16 kHz ???)
-fs = 16000
+fs = 8000
 
 # tempo dos arquivos gerados em segundos
 
@@ -158,7 +158,7 @@ for ruido in ruido_directory:
     
     for audio in sinal_directory:
     
-        sinal, fs = librosa.core.load(audio, sr =16000)
+        sinal, fs = librosa.core.load(audio, sr =8000)
         
         audio_name = audio.parts[5][:-4]
         
@@ -179,7 +179,7 @@ for ruido in ruido_directory:
         for snr in range(lim_inf_dB, lim_sup_dB+1, step_dB):
             
             # carrega o arquivo de ruído    
-            ruido_data, fs = librosa.core.load(ruido, sr=16000)
+            ruido_data, fs = librosa.core.load(ruido, sr=8000)
              
             # copia para um auxiliar
             ruido_aux = ruido_data.copy()
@@ -189,7 +189,7 @@ for ruido in ruido_directory:
             # filtra o ruido pela planta escolhida
             ruido_filtrado = signal.lfilter(w0, 1, ruido_aux)    
             
-            sinal_ruido, rand_start = mf.addnoise_asl(sinal_aux, ruido_filtrado, 16, 16000, snr)
+            sinal_ruido, rand_start = mf.addnoise_asl(sinal_aux, ruido_filtrado, 16, 8000, snr)
             
             
             magic_number = 1.0
@@ -207,7 +207,7 @@ for ruido in ruido_directory:
                 # filtra o ruido pela planta escolhida
                 ruido_filtrado = signal.lfilter(w0, 1, ruido_aux)    
                 
-                sinal_ruido, rand_start = mf.addnoise_asl(sinal_aux, ruido_filtrado, 16, 16000, snr)
+                sinal_ruido, rand_start = mf.addnoise_asl(sinal_aux, ruido_filtrado, 16, 8000, snr)
             
                 if (max(abs(min(sinal_ruido)), max(sinal_ruido)) >= 1.0):
                     magic_number = magic_number+1
@@ -237,16 +237,16 @@ for ruido in ruido_directory:
             
             
             file_arq = path_test_directory / audio_name / file_name
-            librosa.output.write_wav(file_arq, ruido_sinal_ruido, 16000, norm=False)
+            librosa.output.write_wav(file_arq, ruido_sinal_ruido, 8000, norm=False)
             
             file_arq = path_ruido_ajustado / audio_name / file_name
-            librosa.output.write_wav(file_arq, ruido_aux, 16000, norm=False)
+            librosa.output.write_wav(file_arq, ruido_aux, 8000, norm=False)
             
             file_arq = path_audio_ajustado / audio_name / file_name
-            librosa.output.write_wav(file_arq, sinal_aux, 16000, norm=False)            
+            librosa.output.write_wav(file_arq, sinal_aux, 8000, norm=False)            
             
             file_arq = path_audios_contaminados / audio_name / file_name
-            librosa.output.write_wav(file_arq, sinal_ruido, 16000, norm=False) 
+            librosa.output.write_wav(file_arq, sinal_ruido, 8000, norm=False) 
             
             print(snr)
  
