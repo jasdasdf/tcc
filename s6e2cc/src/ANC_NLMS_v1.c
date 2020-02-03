@@ -7,7 +7,11 @@
 #include "uart_io.h"
 #include "dt.h"
 
+#include "stdio.h"
+
 #define N   128
+
+#define tempo_inicial 0x1FFFFFF
 
 //parametros  do filtro nlms
 float32_t w[N] = { 0.0f };
@@ -24,30 +28,22 @@ float32_t error, d, refnoise, error, out, energy, d_hat, e;
 
 float32_t MU = 0.05;
 
+char buffer[10];
 
-void proces_buffer(void) 
+void run_filter(uint32_t *txbuf, uint32_t *rxbuf, int M)
 {
-		uint32_t *txbuf, *rxbuf;
-    uint32_t audio_in, audio_out;
-	
+
+		uint32_t audio_in, audio_out;
 		int ii;
-     
-    // endereços de para o buffer de transporte e de recepção
-    if(tx_proc_buffer == PING) txbuf = dma_tx_buffer_ping; 
-    else txbuf = dma_tx_buffer_pong; 
-    if(rx_proc_buffer == PING) rxbuf = dma_rx_buffer_ping; 
-    else rxbuf = dma_rx_buffer_pong; 
-    
 	
-		for(ii=0; ii<DMA_BUFFER_SIZE ; ii++)
-		{
+		while(ii < M) {
 				// audio de entrada
 				audio_in = *rxbuf++;
 					 
 				audio_chR = (audio_in & 0x0000FFFF);
 
 				audio_chL = (audio_in>>16 & 0x0000FFFF);
-				
+
 				// referência de ruído
 				refnoise = (float32_t)audio_chL;
 
@@ -71,18 +67,46 @@ void proces_buffer(void)
 								
 				//calcula o fator de adaptação.
 				arm_scale_f32(x, MU*e/(energy+ep),fact, N); 
-				
+
 				//atualiza os coeficientes do filtro.
 				arm_add_f32(w, fact, w, N);
 												
 				//out
 				int_out = (int16_t)e;
+
 				audio_out = ((int_out<<16 & 0xFFFF0000)) + (int_out & 0x0000FFFF);
-				 
+					
 				// audio de saída
 				*txbuf++ = audio_out;
+				ii++;
 		}
+
+}
+
+void proces_buffer(void) 
+{
+		uint32_t *txbuf, *rxbuf;
+
+     
+    // endereços de para o buffer de transporte e de recepção
+    if(tx_proc_buffer == PING) txbuf = dma_tx_buffer_ping; 
+    else txbuf = dma_tx_buffer_pong; 
+    if(rx_proc_buffer == PING) rxbuf = dma_rx_buffer_ping; 
+    else rxbuf = dma_rx_buffer_pong; 
+    
+	
+		Dt_WriteLoadVal(tempo_inicial, DtChannel0);
+	
+		Dt_EnableCount(DtChannel0);
+	
+		run_filter(txbuf, rxbuf, DMA_BUFFER_SIZE);
 		
+		Dt_DisableCount(DtChannel0);
+		
+		sprintf(buffer, "\n%i", tempo_inicial - Dt_ReadCurCntVal(DtChannel0));
+		
+		uart_printf(buffer);
+	
     tx_buffer_empty = 0;
     rx_buffer_full = 0;
 }
@@ -90,24 +114,42 @@ void proces_buffer(void)
 //Main function
 int main (void) { 
 	
-		
-	
-    system_init(); 
+
+		system_init(); 
 		Uart_Io_Init();/* Initializatio of the UART unit and GPIO used in the communication */
- 
+		
+  	if (my_dt() != 0)
+		{
+				uart_printf("erro na conffiguração do dual timer!\n");
+				while(1);
+		};
+		
+
+	
+		//
     audio_init (hz8000, line_in, dma, DMA_HANDLER);
 	
-		
 
 		
 
-while(1){
-	
-	while (!(rx_buffer_full && tx_buffer_empty)){};
-        
-//				jujuba("a");
+		while(1){
+
+				while (!(rx_buffer_full && tx_buffer_empty)){};
+
+//				Dt_DisableCount(DtChannel0);
+//				
+//				sprintf(buffer, "\n%i", tempo_inicial - Dt_ReadCurCntVal(DtChannel0));
+//				
+//				uart_printf(buffer);
+//							
+//				Dt_WriteLoadVal(tempo_inicial, DtChannel0);
+//			
+//				Dt_EnableCount(DtChannel0);
+//					
+					
 				proces_buffer();
-//				jujuba("b");
 
-	}
+		}
+
+		
 }

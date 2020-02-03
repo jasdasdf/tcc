@@ -821,7 +821,7 @@ int32_t my_dt(){
 	    /* Initialize dual timer channel 0 */
     if (Ok != Dt_Init((stc_dt_channel_config_t*)&stcDtChannelConfig0, DtChannel0))
     {
-				while(1);// error
+				return 1;// error
 				
 		}
 		
@@ -829,26 +829,12 @@ int32_t my_dt(){
     u32CountDt0 = 0;
 		
 		/* Write load value for channel 0 (0.5sec interval @ PCLK=80MHz ) */
-    Dt_WriteLoadVal(78125, DtChannel0);
-    /* Write background load value for channel 0 (0.5sec -> 1sec @ PCLK=80MHz) */
-    Dt_WriteBgLoadVal(156250, DtChannel0);
-    /* Start count for channel 0 */
-    Dt_EnableCount(DtChannel0);
-
-    /* Write load value for channel 1 (1sec until overflow @ PCLK=80MHz) */
-    Dt_WriteLoadVal(156250, DtChannel1);
-    /* Start count for channel 1 */
-    Dt_EnableCount(DtChannel1);
-
-    while(1)
-    {
-        /* Check interrupt for channel 0 */
-        if (TRUE == Dt_GetIrqFlag(DtChannel0))
-        {
-            Dt_ClrIrqFlag(DtChannel0);    /* Clear Irq */
-            u32CountDt0++;
-//            SetLed0(u32CountDt0);
-        }
-			}
+    Dt_WriteLoadVal(0x1FFFFFFF, DtChannel0);
+//    /* Write background load value for channel 0 (0.5sec -> 1sec @ PCLK=80MHz) */
+//    Dt_WriteBgLoadVal(156250, DtChannel0);
+//    /* Start count for channel 0 */
+//    Dt_EnableCount(DtChannel0);
+	
+		return 0;
 
 }

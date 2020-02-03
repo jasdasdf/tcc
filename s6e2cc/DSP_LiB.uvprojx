@@ -427,6 +427,11 @@
               <FileType>1</FileType>
               <FilePath>.\drivers\uart_io.c</FilePath>
             </File>
+            <File>
+              <FileName>dt.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\drivers\dt.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

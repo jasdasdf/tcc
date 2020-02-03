@@ -553,15 +553,15 @@ uint32_t Dt_ReadCurCntVal(uint8_t u8Channel);
 /******************************************************************************/
 /* Configuration for channel 0 */
 static const stc_dt_channel_config_t stcDtChannelConfig0 = {
-    DtPeriodic,         /* Periodic mode */
-    DtPrescalerDiv256,  /* Prescaler dividor f/256 */
+    DtOneShot,         /* One Shot mode */
+    DtPrescalerDiv1,  /* Prescaler dividor f/256 */
     DtCounterSize32     /* 32bits counter size */
 };
 
 /* Configuration for channel 1 */
 static const stc_dt_channel_config_t stcDtChannelConfig1 = {
     DtOneShot,          /* One-shot mode */
-    DtPrescalerDiv256,  /* Prescaler dividor f/256 */
+    DtPrescalerDiv1,  /* Prescaler dividor f/1 */
     DtCounterSize32     /* 32bits counter size */
 };
 

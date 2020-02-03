@@ -40,5 +40,17 @@ mf.channel_identification(10, 8000, 128)
 #%%
 
 
+import serial
 
+ser = serial.Serial()
+ser.baudrate = 115200
+ser.port= 'COM5'
+ser.open()
+a=ser.read(5000)
+ser.close()
+
+b = [int(s) for s in a.split() if s.isdigit()]
+c = np.array(b)
+print(c.size)
+print(c.mean())
 
