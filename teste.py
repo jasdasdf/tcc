@@ -35,7 +35,7 @@ sys.path.insert(0 ,'tcc/scripts/functions/')
 import my_functions as mf
 
 
-mf.channel_identification(10, 8000, 128)
+mf.channel_identification(20, 8000, 128)
 
 #%%
 

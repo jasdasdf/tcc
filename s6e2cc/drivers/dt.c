@@ -816,7 +816,7 @@ uint32_t Dt_ReadCurCntVal(uint8_t u8Channel)
 
 int32_t my_dt(){
 		
-		uint32_t u32CountDt0;
+
 	
 	    /* Initialize dual timer channel 0 */
     if (Ok != Dt_Init((stc_dt_channel_config_t*)&stcDtChannelConfig0, DtChannel0))
@@ -824,10 +824,7 @@ int32_t my_dt(){
 				return 1;// error
 				
 		}
-		
-		/* Initialize interrupt counter */
-    u32CountDt0 = 0;
-		
+
 		/* Write load value for channel 0 (0.5sec interval @ PCLK=80MHz ) */
     Dt_WriteLoadVal(0x1FFFFFFF, DtChannel0);
 //    /* Write background load value for channel 0 (0.5sec -> 1sec @ PCLK=80MHz) */

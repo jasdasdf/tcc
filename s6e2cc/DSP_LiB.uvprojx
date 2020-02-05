@@ -10,6 +10,7 @@
       <TargetName>s6e2cc_template</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
+      <pArmCC>5060750::V5.06 update 6 (build 750)::ARMCC</pArmCC>
       <pCCUsed>5060750::V5.06 update 6 (build 750)::ARMCC</pCCUsed>
       <uAC6>0</uAC6>
       <TargetOption>
@@ -383,9 +384,9 @@
           <GroupName>src</GroupName>
           <Files>
             <File>
-              <FileName>ANC_NLMS_v1.c</FileName>
+              <FileName>ANC_NPVSS_NLMS_v3.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\src\ANC_NLMS_v1.c</FilePath>
+              <FilePath>.\src\ANC_NPVSS_NLMS_v3.c</FilePath>
             </File>
           </Files>
         </Group>

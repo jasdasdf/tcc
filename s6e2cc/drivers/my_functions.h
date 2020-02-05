@@ -49,6 +49,3 @@ void DMA_HANDLER (void)
     }
 }
 
-void system_init(){
-    return;
-}

@@ -1,4 +1,5 @@
 // my_vss_nlms_zipf.h
+//inlcude "arm_math.h"
 
 //parametros  do filtro vss_nlms_zipf
 #define L 			128		
