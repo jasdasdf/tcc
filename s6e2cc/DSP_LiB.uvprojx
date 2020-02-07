@@ -135,10 +135,10 @@
             <RunIndependent>0</RunIndependent>
             <UpdateFlashBeforeDebugging>1</UpdateFlashBeforeDebugging>
             <Capability>1</Capability>
-            <DriverSelection>4096</DriverSelection>
+            <DriverSelection>4099</DriverSelection>
           </Flash1>
           <bUseTDR>1</bUseTDR>
-          <Flash2>BIN\UL2CM3.DLL</Flash2>
+          <Flash2>BIN\CMSIS_AGDI.dll</Flash2>
           <Flash3>"" ()</Flash3>
           <Flash4></Flash4>
           <pFcarmOut></pFcarmOut>
@@ -384,9 +384,9 @@
           <GroupName>src</GroupName>
           <Files>
             <File>
-              <FileName>ANC_NPVSS_NLMS_v3.c</FileName>
+              <FileName>ANC_NLMS_v1.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\src\ANC_NPVSS_NLMS_v3.c</FilePath>
+              <FilePath>.\src\ANC_NLMS_v1.c</FilePath>
             </File>
           </Files>
         </Group>

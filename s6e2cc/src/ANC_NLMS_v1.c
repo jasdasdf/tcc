@@ -13,6 +13,8 @@
 
 #define tempo_inicial 0x1FFFFFF
 
+#define tempo_de_medicao 0x32
+
 //parametros  do filtro nlms
 float32_t w[N] = { 0.0f };
 float32_t x[N] = { 0.0f };
@@ -30,13 +32,16 @@ float32_t MU = 0.05;
 
 char buffer[10];
 
+
 void run_filter(uint32_t *txbuf, uint32_t *rxbuf, int M)
 {
 
 		uint32_t audio_in, audio_out;
 		int ii;
 	
+	
 		while(ii < M) {
+			
 				// audio de entrada
 				audio_in = *rxbuf++;
 					 
@@ -45,10 +50,10 @@ void run_filter(uint32_t *txbuf, uint32_t *rxbuf, int M)
 				audio_chL = (audio_in>>16 & 0x0000FFFF);
 
 				// referência de ruído
-				refnoise = (float32_t)audio_chR;
+				refnoise = (float32_t)audio_chL;
 
 				//desejado
-				d = (float32_t)audio_chL;
+				d = (float32_t)audio_chR;
 
 				//shift do vetor "x"		
 				memmove(&x[1], &x[0], (N-1)*sizeof(float32_t));
@@ -58,19 +63,19 @@ void run_filter(uint32_t *txbuf, uint32_t *rxbuf, int M)
 
 				//energia do sinal "x".
 				arm_power_f32(x,N, &energy);	
-								
+		
 				//estima a saída "d_hat"
 				arm_dot_prod_f32(w,x,N,&d_hat); 	
-
+	
 				//erro.
 				e = d-d_hat;
-								
+		
 				//calcula o fator de adaptação.
 				arm_scale_f32(x, MU*e/(energy+ep),fact, N); 
 
 				//atualiza os coeficientes do filtro.
 				arm_add_f32(w, fact, w, N);
-												
+
 				//out
 				int_out = (int16_t)e;
 
@@ -79,8 +84,9 @@ void run_filter(uint32_t *txbuf, uint32_t *rxbuf, int M)
 				// audio de saída
 				*txbuf++ = audio_out;
 				ii++;
+	
 		}
-
+		
 }
 
 void proces_buffer(void) 
@@ -108,7 +114,7 @@ void proces_buffer(void)
 		Dt_DisableCount(DtChannel0);
 		
 		// Converte para string a diferença entre o tempo inicial e o valor do contador
-		sprintf(buffer, "\n%i", tempo_inicial - Dt_ReadCurCntVal(DtChannel0));
+		sprintf(buffer, "\n%i", tempo_inicial - Dt_ReadCurCntVal(DtChannel0)- tempo_de_medicao);
 		
 		// Passa via UART o tempo (número de clocks)
 		uart_printf(buffer);
@@ -145,12 +151,12 @@ int main (void) {
 				// enquanto o buffer de recepção não estiver cheio 
 			  // e o de transmissão vaziu
 			
-				while (!(rx_buffer_full && tx_buffer_empty)){};
+ 				while (!(rx_buffer_full && tx_buffer_empty)){};
 
 					// para contar o tempo total disponível para processameento de 128 amostras
 //				Dt_DisableCount(DtChannel0);
 //				
-//				sprintf(buffer, "\n%i", tempo_inicial - Dt_ReadCurCntVal(DtChannel0));
+//				sprintf(buffer, "\n%i", tempo_inicial - Dt_ReadCurCntVal(DtChannel0) - tempo_de_medicao);
 //				
 //				uart_printf(buffer);
 //							
