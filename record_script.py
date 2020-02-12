@@ -33,10 +33,12 @@ buffer_size = 128
 # diretório de trabalho/desenvolviemnto
 pasta_de_trabalho = pathlib.Path('C:/Users/RAFAEL/Desktop')
 
+#%%
 
 # diretório dos audios
 audios = pathlib.Path('audios')
 audios_teste = audios / 'audios_teste'
+
 
 resultados = pasta_de_trabalho / 'resultados'
 resultados_balburdia = resultados / 'balburdia'
@@ -213,28 +215,26 @@ for path in directory:
 np.save(algoritmo, list_noise)
     
 #%%
-        #%%
 
-                    ## GRAVAR OS ARQUIVOS DE REFERÊNCIA (CODEC PLACA)
+                 ## GRAVAR OS ARQUIVOS DE REFERÊNCIA (CODEC PLACA)
+
+# modo de operação no kit
+algoritmo = 'audios_contaminados'
+
+# pasta a ser criada para os audios de referência
+referencia = pasta_de_trabalho / 'referencia'
+
+# pasta que contem os audios contaminados utilizados no teste
+audios_contaminados_path = pasta_de_trabalho / audios / 'audios_contaminados'
+
+# pasta para os audios contaminados
+audios_contaminados = referencia / algoritmo
+
+# cria a pasta referencia e audios contaminados
+pathlib.Path(referencia).mkdir(parents=True, exist_ok=True)
+pathlib.Path(audios_contaminados).mkdir(parents=True, exist_ok=True)
 
 
-os.chdir("G:/Meu Drive/Adaptive Noise Canceling/Estágio/Python_04")
-
-# diretório dos arquivos de audio 
-local = "G:/Meu Drive/Adaptive Noise Canceling/Estágio/Python_04/audios/white_noise/sinal_ruido"
-
-# lista o diretório
-directory = os.listdir(local)
-directory = directory[:-1]
-directory = sorted(directory)
-
-#destiny = "G:/Meu Drive/Adaptive Noise Canceling/Estágio/Python_04/audios/white_noise/sinal_ruido_board"
-#os.mkdir(destiny)
-#
-#for d in directory:
-#    name = destiny + "/%s"%d
-#    os.mkdir(name)   
-        
 # limite inferior do teste em dB
 lim_inf_dB = -20
 
@@ -244,143 +244,221 @@ lim_sup_dB = 20
 # passo de dB em dB (de 5 em 5 --> jdB = 5)
 step_dB = 2
 
+
+# lista o conteudo do diretório dos audios de teste
+directory = list(audios_contaminados_path.glob('*/'))
+
+
+# percorre cada pasta dos audios de teste (balburdia, obras e wgn)
 for path in directory:
-    name_path = "./audios/white_noise/sinal_ruido/%s"%path
-    path_directory = os.listdir(name_path)    
-    path_directory = path_directory[:-1]
-    path_directory.sort()
-    path_directory[0:10]=sorted(path_directory[0:10], reverse=True)
-    
-    dir_name1= destiny + "/%s"%(path)
-    os.mkdir(dir_name1)
-    
-    for file in path_directory:
-        print(file)
-        # nome do arquivo a ser importado
-        filename = "./audios/white_noise/sinal_ruido/%s/%s"%(path, file)
-        
-        snr_file = file[12:-4]
-        
-        # importa o arquivo
-        data, fs = sf.read(filename, dtype='float32')
-                
-        
-        data_temp = np.concatenate((data,delay), axis=None)
-        
-        # configura o sounddevice
-        sd.default.samplerate = fs    
-        sd.default.channels = 1
             
-        show = "recording %s"%(snr_file)
-        print(show)
+    # lista as pastas Port_fx presentes no diretório do tipo de ruído
+    path_directory = list(path.glob('*/'))    
+
+    
+    # print(path_directory)
+    
+    noise_path = path.parts[-1]
+
+    # percorre todas as pastas do diretório (Port_f1, Port_f2,...)
+    for Port_audio in path_directory:
         
-        # reproduz e grava
-        rec = sd.playrec(data_temp, fs, 1)
-        rec = rec[:,0]
-        
-        sd.wait()
+
+        # lista os arquivos de audio de forma crescente -20 dB para 20 dB
+        files = list(Port_audio.glob('*/'))
+
+        files.sort()
+        files[0:10]=sorted(files[0:10], reverse=True)
+         
+        # pasta Port_fx na pasta resultados
+        port_audio_path = audios_contaminados / noise_path / Port_audio.parts[7]
        
-        # calcular o delay entre os arquivos de audio
-        r = np.correlate(data_temp, rec, 'full')
-        r = r/max(abs(r))
-        delay_file = np.argmax(abs(r)==1)
-        
-        a = np.linspace((-1)*len(data_temp)+1, len(data_temp)-1, len(r))
-    
-        a = a.tolist()
-        ref = a.index(0.0)
-        
-        delay_file = abs(ref - delay_file)
-        show = "delay corrected = %d samples"%(delay_file)
+        show =  Port_audio.parts[7]
         print(show)
+        
+        # cria pasta Port_fx
+        pathlib.Path(port_audio_path).mkdir(parents=True, exist_ok=True)
+        
+        for file in files:
             
-        rec = rec [delay_file: len(data) + delay_file]
-                   
-        filename = destiny + "/%s/%s"%(path, file)
+            filename = file
+            
+            snr_file = file.parts[-1][12:-4]
+            
+            # importa o arquivo
+            data, fs = sf.read(filename, dtype='float32')
+
+            # concatena o delay 
+            data_temp = np.concatenate((data,delay), axis=None)
         
-        # salva o arquivo gravado   
-        sf.write(filename, rec, fs)
+            # configura o sounddevice
+            sd.default.samplerate = fs    
+            sd.default.channels = 1
+                
+            show = "recording %s"%(snr_file)
+            print(show)
+            
+           
+            # reproduz e grava
+            rec = sd.playrec(data_temp, fs, 1)
+            rec = rec[:,0]
+            
+            # espera terminar de reproduzir
+            sd.wait()
+       
+            # calcular o delay entre os arquivos de audio
+            r = np.correlate(data_temp, rec, 'full')
+            r = r/max(abs(r))
+            delay_file = np.argmax(abs(r)==1)
+            
+            a = np.linspace((-1)*len(data_temp)+1, len(data_temp)-1, len(r))
         
-        # apaga a variavel rec (por precaução)
-        del rec
+            a = a.tolist()
+            ref = a.index(0.0)
+            
+            delay_file = abs(ref - delay_file)
+            show = "delay corrected = %d samples"%(delay_file)
+            print(show)
+                
+            rec = rec [delay_file: len(data) + delay_file]
+                                          
+            filename_aux = '%s_%s.wav' %(algoritmo, snr_file)
+            filename = port_audio_path / filename_aux
+            
+            # salva o arquivo gravado   
+            sf.write(filename, rec, fs)
+            
+            # apaga a variavel rec (por precaução)
+            del rec
+            
+            show = "File %s saved\nnext!\n"%(snr_file)
+            print(show)
+            
+
+
+        #%%
+                 ##   AUDIOS ITUT P50 NO DOMÍNIO DA PLACA 
+
+# modo de operação no kit
+algoritmo = 'audios_ajustados'
+
+# pasta a ser criada para os audios de referência
+referencia = pasta_de_trabalho / 'referencia'
+
+# pasta que contem os audios contaminados utilizados no teste
+audios_ajustados_path = pasta_de_trabalho / audios / 'audios_ajustados'
+
+# pasta para os audios contaminados
+audios_ajustados = referencia / algoritmo
+
+# cria a pasta referencia e audios contaminados
+pathlib.Path(referencia).mkdir(parents=True, exist_ok=True)
+pathlib.Path(audios_ajustados).mkdir(parents=True, exist_ok=True)
+
+
+# limite inferior do teste em dB
+lim_inf_dB = -20
+
+# limite superior do teste em dB
+lim_sup_dB = 20
+
+# passo de dB em dB (de 5 em 5 --> jdB = 5)
+step_dB = 2
+
+
+# lista o conteudo do diretório dos audios de teste
+directory = list(audios_ajustados_path.glob('*/'))
+
+
+# percorre cada pasta dos audios de teste (balburdia, obras e wgn)
+for path in directory:
+            
+    # lista as pastas Port_fx presentes no diretório do tipo de ruído
+    path_directory = list(path.glob('*/'))    
+
+    
+    # print(path_directory)
+    
+    noise_path = path.parts[-1]
+
+    # percorre todas as pastas do diretório (Port_f1, Port_f2,...)
+    for Port_audio in path_directory:
         
-        show = "File %s saved\n\n"%(snr_file)
+
+        # lista os arquivos de audio de forma crescente -20 dB para 20 dB
+        files = list(Port_audio.glob('*/'))
+
+        files.sort()
+        files[0:10]=sorted(files[0:10], reverse=True)
+         
+        # pasta Port_fx na pasta resultados
+        port_audio_path = audios_ajustados / noise_path / Port_audio.parts[7]
+       
+        show =  Port_audio.parts[7]
         print(show)
+        
+        # cria pasta Port_fx
+        pathlib.Path(port_audio_path).mkdir(parents=True, exist_ok=True)
+        
+        for file in files:
+            
+            filename = file
+            
+            snr_file = file.parts[-1][12:-4]
+            
+            # importa o arquivo
+            data, fs = sf.read(filename, dtype='float32')
+
+            # concatena o delay 
+            data_temp = np.concatenate((data,delay), axis=None)
+        
+            # configura o sounddevice
+            sd.default.samplerate = fs    
+            sd.default.channels = 1
+                
+            show = "recording %s"%(snr_file)
+            print(show)
+        
+            # reproduz e grava
+            rec = sd.playrec(data_temp, fs, 1, blocking=True)
+            rec = rec[:,0]
+            
+            # espera terminar de reproduzir
+            sd.wait()
+       
+            # calcular o delay entre os arquivos de audio
+            r = np.correlate(data_temp, rec, 'full')
+            r = r/max(abs(r))
+            delay_file = np.argmax(abs(r)==1)
+            
+            a = np.linspace((-1)*len(data_temp)+1, len(data_temp)-1, len(r))
+        
+            a = a.tolist()
+            ref = a.index(0.0)
+            
+            delay_file = abs(ref - delay_file)
+            show = "delay corrected = %d samples"%(delay_file)
+            print(show)
+                
+            rec = rec [delay_file: len(data) + delay_file]
+                                          
+            filename_aux = '%s_%s.wav' %(algoritmo, snr_file)
+            filename = port_audio_path / filename_aux
+            
+            # salva o arquivo gravado   
+            sf.write(filename, rec, fs)
+            
+            # apaga a variavel rec (por precaução)
+            del rec
+            
+            show = "File %s saved\nnext!\n"%(snr_file)
+            print(show)
+
+
      
         #%%
 
-                    ##   AUDIOS ITUT P50 NO DOMÍNIO DA PLACA 
-
-
-# diretório dos arquivos de audio 
-local = "G:/Meu Drive/Adaptive Noise Canceling/Estágio/Python_04/ITUT_P50_PT_BR"
-
-# lista o diretório
-directory = os.listdir(local)
-directory = directory[:-1]
-directory = sorted(directory)
-
-destiny = "G:/Meu Drive/Adaptive Noise Canceling/Estágio/Python_04/ITUT_P50_PT_BR_BOARD"
-#os.mkdir(destiny)
-
-fs = 8000
-
-# para cada frase da ITU-T P50 e cada pasta do diretório executa
-for wav in directory:
-
-    print(wav)
-    
-    # arquivo de áudio
-    file = "%s/%s"%(local, wav)
-            
-      
-    # importa o arquivo
-    data, fs = sf.read(file, dtype='float32')
-            
-    
-    data_temp = np.concatenate((data,delay), axis=None)
-    
-    # configura o sounddevice
-    sd.default.samplerate = fs    
-    sd.default.channels = 1
-        
-    show = "recording"
-    
-    # reproduz e grava
-    rec = sd.playrec(data_temp, fs, 1)
-    rec = rec[:,0]
-    
-    sd.wait()
-   
-    # calcular o delay entre os arquivos de audio
-    r = np.correlate(data_temp, rec, 'full')
-    r = r/max(abs(r))
-    delay_file = np.argmax(abs(r)==1)
-    
-    a = np.linspace((-1)*len(data_temp)+1, len(data_temp)-1, len(r))
-
-    a = a.tolist()
-    ref = a.index(0.0)
-    
-    delay_file = abs(ref - delay_file)
-    show = "delay corrected = %d samples"%(delay_file)
-    print(show)
-        
-    rec = rec [delay_file: len(data) + delay_file]
-               
-    filename = destiny + "/%s"%(wav)
-    
-    print(len(data))
-    print(len(rec))
-    
-    # salva o arquivo gravado   
-    sf.write(filename, rec, fs)
-    
-    # apaga a variavel rec (por precaução)
-    del rec
-    
-    show = "File %s saved\n\n"%wav
-    print(show)
+                   
         
     
 #%%
