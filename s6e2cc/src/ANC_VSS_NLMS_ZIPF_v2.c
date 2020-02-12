@@ -12,6 +12,7 @@
 #define N   128
 
 #define tempo_inicial 0x1FFFFFF
+#define tempo_de_medicao 0x32
 
 char buffer[10];
 
@@ -36,7 +37,7 @@ void run_filter(uint32_t *txbuf, uint32_t *rxbuf, int M)
 				d = (float32_t)audio_chR;
 		
 				//shift do vetor "x"		
-				memmove(&x[1], &x[0], (L-1)*sizeof(float32_t));
+				memcpy(&x[1], &x[0], (L-1)*sizeof(float32_t));
 	
 				//novo valor de referência armazenado
 				x[0]=refnoise;
@@ -117,7 +118,7 @@ void proces_buffer(void)
 		Dt_DisableCount(DtChannel0);
 		
 		// Converte para string a diferença entre o tempo inicial e o valor do contador
-		sprintf(buffer, "\n%i", tempo_inicial - Dt_ReadCurCntVal(DtChannel0));
+		sprintf(buffer, "\n%i", tempo_inicial - Dt_ReadCurCntVal(DtChannel0)- tempo_de_medicao);
 		
 		// Passa via UART o tempo (número de clocks)
 		uart_printf(buffer);
@@ -140,6 +141,9 @@ int main (void) {
 				while(1);
 		};
 		
+		// inicializa as variáveis do filtro
+		init_vss_nlms_zipf();
+		
 		// inicializa o CODEC
     audio_init (hz8000, line_in, dma, DMA_HANDLER);
 	
@@ -154,7 +158,7 @@ int main (void) {
 //					// para contar o tempo total disponível para processameento de 128 amostras
 //				Dt_DisableCount(DtChannel0);
 //				
-//				sprintf(buffer, "\n%i", tempo_inicial - Dt_ReadCurCntVal(DtChannel0));
+//				sprintf(buffer, "\n%i", tempo_inicial - Dt_ReadCurCntVal(DtChannel0) - tempo_de_medicao);
 //				
 //				uart_printf(buffer);
 //							

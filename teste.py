@@ -35,7 +35,7 @@ sys.path.insert(0 ,'tcc/scripts/functions/')
 import my_functions as mf
 
 
-mf.channel_identification(20, 8000, 128)
+mf.channel_identification(10, 8000, 128)
 
 #%%
 
@@ -45,12 +45,24 @@ import serial
 ser = serial.Serial()
 ser.baudrate = 115200
 ser.port= 'COM5'
+
+l = []
+
 ser.open()
-a=ser.read(5000)
+
+ser.write('1'.encode())
+
+a=ser.read(5300)
+
 ser.close()
 
 b = [int(s) for s in a.split() if s.isdigit()]
+
 c = np.array(b)
 print(c.size)
 print(c.mean())
+
+l.append(c)
+
+np.save("test", l)
 

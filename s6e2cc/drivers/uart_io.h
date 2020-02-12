@@ -42,6 +42,7 @@
 #define FM_MFS9_UART_BASE                         (0x40038900UL) /* MFS9 Base Address */
 #define FM4_MFS9_UART_BASE                        (0x40038900UL) /* MFS9 Base Address */
 
+
 typedef struct stc_mfs_uart_smr_field
 {
     union {
@@ -301,7 +302,6 @@ typedef struct
 
 
 
-
 /// MFS mode
 typedef enum en_mfs_mode
 {
@@ -552,6 +552,8 @@ int fputc(int ch, FILE *f);
 
 
 void uart_printf(char *ch);
+void uart_scanf(char *ch);
+
 
 /******************************************************************************/
 /* Global function prototypes (definition in C source)                        */

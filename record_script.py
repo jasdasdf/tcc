@@ -17,7 +17,18 @@ from   scipy import signal
 import pyautogui
 import pathlib
 
+import serial
 
+# dados da porta serial que o dispositivo está conectado
+ser = serial.Serial()
+ser.baudrate = 115200
+ser.port= 'COM5'
+
+# Tamanho do dado recebido via UART
+uart_array_length = 10
+
+# Tamanho do buffer utilizado no kit de desenvolvimento
+buffer_size = 128
 
 # diretório de trabalho/desenvolviemnto
 pasta_de_trabalho = pathlib.Path('G:/Meu Drive/Adaptive Noise Canceling/TCC/Desenvolvimento/')
@@ -75,8 +86,14 @@ algoritmo = 'npvss_nlms'
 directory = list(audios_teste.glob('*/'))
 directory = directory[:-1]
 
+# listas
+list_noise = []
+
+
 # percorre cada pasta dos audios de teste (balburdia, obras e wgn)
 for path in directory:
+    
+    list_Ports  = []
     
     # gera pasta com /'tipo de ruido' / algoritmo
     pasta_algoritmo = resultados / path.parts[2] / algoritmo    
@@ -91,6 +108,8 @@ for path in directory:
     # percorre todas as pastas do diretório (Port_f1, Port_f2,...)
     for Port_audio in path_directory:
         
+        list_snr    = []
+
         # lista os arquivos de audio de forma crescente -20 dB para 20 dB
         files = list(Port_audio.glob('*/'))
         files = files[:-1]
@@ -104,7 +123,7 @@ for path in directory:
         pathlib.Path(port_audio_path).mkdir(parents=True, exist_ok=True)
         
         for file in files:
-                            
+            
             filename = file
             
             snr_file = file.parts[4][12:-4]
@@ -127,12 +146,28 @@ for path in directory:
             show = "recording %s"%(snr_file)
             print(show)
             
+            # tamanho do buffer a ser coletado da comunicação uart
+            uart_length = round(sinal_ruido_temp.size / buffer_size * uart_array_length)
+        
+            # "abre" a comunicação UART
+            ser.open()
+            
+            # envia o comando '1' via UART para resetar as variáveis do filtro
+            ser.write('1'.encode())
+            
             # reproduz e grava
             rec = sd.playrec(data_temp, fs, 1)
             rec = rec[:,0]
             
-            sd.wait()
-           
+            # coleta via uart
+            uart_data = ser.read(uart_length)
+            
+            # fecha a porta de comunicação UART
+            ser.close()
+            
+            # processa os dados recebidos via UART (pega somente os números)
+            uart_data = [int(s) for s in a.split() if s.isdigit()]
+            
             # calcular o delay entre os arquivos de audio
             r = np.correlate(sinal_ruido_temp, rec, 'full')
             r = r/max(abs(r))
@@ -147,21 +182,31 @@ for path in directory:
             show = "delay corrected = %d samples"%(delay_file)
             print(show)
                 
+            # retira a parte do dalay
             rec = rec [delay_file: len(sinal_ruido) + delay_file]
+            
+            # retira o delay dos dados coletados via UART
+            uart_delay = round(delay_file/(fs/buffer_size))
+            uart_data = uart_data[uart_delay : round(ruido.size/(fs/buffer_size)) + uart_delay ]
                        
             filename = "resultados/vss_nlms_shin/%s/vss_nlms_shin_%s.wav"%(path, snr_file)
             
             # salva o arquivo gravado   
             sf.write(filename, rec, fs)
             
+            
+            
             # apaga a variavel rec (por precaução)
             del rec
             
             show = "File %s saved\nReset filter and press Enter to continue!"%(snr_file)
             print(show)
-            input()
+            
+            list_snr.append(uart_data)
         
-        
+         list_Ports.append(list_snr)
+   
+    list_noise.append(list_Ports)
     
 
     

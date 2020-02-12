@@ -17,7 +17,12 @@ stc_mfs_instance_data_t m_astcMfsInstanceDataLut[MFS_INSTANCE_COUNT] =
 	}, 
 };
 
+
+
 volatile stc_mfsn_uart_t* UartCh = &UART0;
+
+
+
 #define UartInstanceToIndex(Instance) ((uint32_t)Instance - (uint32_t)&UART0)/0x100u
 
 /**
@@ -409,6 +414,11 @@ en_result_t Mfs_Uart_Init(volatile stc_mfsn_uart_t*         pstcUart,
                                             bFM4_GPIO_PFR2_P2 = 1u; \
                                         }while (0u)
 
+#define SetPinFunc_SIN0_0(dummy)        do{ \
+                                            PINRELOC_SET_EPFR( FM4_GPIO->EPFR07, 4u, 2u,  1u ); \
+                                            bFM4_GPIO_PFR2_P1 = 1u; \
+                                        }while (0u)
+																				
 void Uart_Io_Init(void){
 
 		stc_mfs_uart_config_t stcUartConfig;
@@ -429,6 +439,10 @@ void Uart_Io_Init(void){
 	  SetPinFunc_SOT0_0();    
     Mfs_Uart_EnableFunc(UartCh, UartTx);
 		
+	
+		SetPinFunc_SIN0_0();    
+    Mfs_Uart_EnableFunc(UartCh, UartRx);
+	
 }
 
 int fputc(int ch, FILE *f){
@@ -468,4 +482,36 @@ void uart_printf(char *ch){
 	}
 
 }
+
+/**
+ ******************************************************************************
+ ** \brief Read UART data buffer
+ **
+ ** \param [in] pstcUart   Pointer to UART instance   
+ ** 
+ ** \retval Receive data        
+ ** 
+ ******************************************************************************/
+uint16_t Mfs_Uart_ReceiveData(volatile stc_mfsn_uart_t* pstcUart)
+{    
+    return (pstcUart->RDR);
+}
+
+
+void uart_scanf(char *ch){
+
+				
+			// espera digitar alguma coisa
+//    while (TRUE != Mfs_Uart_GetStatus(UartCh, UartRxFull))
+//    {
+//        /* Wait until there is a character in the Rx FIFO */ 
+//    }
+	
+			if (Mfs_Uart_GetStatus(UartCh, UartRxFull) == TRUE ){
+			
+					*ch = (int)Mfs_Uart_ReceiveData(UartCh);        
+			}
+			
+}
+
 //int fgetc(FILE *f);

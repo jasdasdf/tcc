@@ -56,7 +56,7 @@ void run_filter(uint32_t *txbuf, uint32_t *rxbuf, int M)
 				d = (float32_t)audio_chR;
 
 				//shift do vetor "x"		
-				memmove(&x[1], &x[0], (N-1)*sizeof(float32_t));
+				memcpy(&x[1], &x[0], (N-1)*sizeof(float32_t));
 
 				//novo valor de referência armazenado
 				x[0]=refnoise;

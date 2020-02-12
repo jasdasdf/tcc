@@ -6,11 +6,13 @@
 
 // Declaração de variáveis
 //*******************************************************************
+#include "arm_math.h"
 
 //constantes definidas par ao filtro npvss-nlms
 #define L 			128		
 #define K				6 // 2<=K<=6 ? (artigo Benesty)
 #define epslon		1.0
+#define ep 			1.0/0x7FFF
 
 //parametros  do filtro npvss-nlms
 float32_t a, e, d, d_hat;
@@ -22,11 +24,12 @@ float32_t fact_01[L], fact_02[L];
 float32_t lambda, lambda1, lambda2;
 float32_t power_error;
 
+
 void init_npvss_nlms(){
 	
+	lambda  = 1.0 - 1.0/(K*L);
 //	lambda  = 1.0 - 1.0/(K*L);
-	lambda1  = 1.0 - 1.0/(K*L);
-	lambda2  = 0.9999;
+//	lambda  = 0.9999;
 	arm_fill_f32( 0.0, x, L);
 	arm_fill_f32( 0.0, w, L);
 	arm_fill_f32( 0.0, error, L);

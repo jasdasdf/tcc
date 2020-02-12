@@ -1,6 +1,8 @@
 // my_vss_nlms_zipf.h
 //inlcude "arm_math.h"
 
+#include "arm_math.h"
+
 //parametros  do filtro vss_nlms_zipf
 #define L 			128		
 float32_t beta	= 0.99;

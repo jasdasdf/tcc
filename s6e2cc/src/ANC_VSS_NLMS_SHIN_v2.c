@@ -12,7 +12,7 @@
 #define N   128
 
 #define tempo_inicial 0x1FFFFFF
-
+#define tempo_de_medicao 0x32
 
 //parametros  do filtro vss-nlms
 float32_t w[N] = { 0.0f };
@@ -23,7 +23,7 @@ float32_t alfa = 0.9961;
 float32_t C = 0.001; // verificar artigo (k/SNR)
 float32_t mu_max = 1.5;
 
-float32_t ep = 1.0;
+float32_t ep = 1.0/0x7FFF;
 
 float32_t fact[N] = { 0.0f };
 float32_t pA[N] = { 0.0f };
@@ -57,7 +57,7 @@ void run_filter(uint32_t *txbuf, uint32_t *rxbuf, int M)
 				d = (float32_t)audio_chR;
 		
 				//shift do vetor "x"		
-				memmove(&x[1], &x[0], (N-1)*sizeof(float32_t));
+				memcpy(&x[1], &x[0], (N-1)*sizeof(float32_t));
 	
 				//shift do vetor "p"
 				//memmove(&p[1], &p[0], (N-1)*sizeof(float32_t));		  
@@ -68,22 +68,19 @@ void run_filter(uint32_t *txbuf, uint32_t *rxbuf, int M)
 				//energia do sinal "x".
 				arm_power_f32(x,N, &energy);	
 								
+				energy= energy+ep;				
+								
 				//estima a saída "d_hat"
 				arm_dot_prod_f32(w,x,N,&d_hat); 	
 
 				//erro.
 				e = d-d_hat;
 		
+//				if(energy==0){energy = ep;}
+				
 				//considerando p = pA + pB
 				//logo, pB = (e*(1-alfa)/energy)*vetor_x
-				
-			
-				// adicionado porque quando a energia fosse 0 tornava as variáveis seguintes nan
-				if (energy ==0){
-						arm_scale_f32( x, (1-alfa)*e/(energy+ep), pB, N);
-				}else{
-						arm_scale_f32( x, (1-alfa)*e/(energy), pB, N);
-				}
+				arm_scale_f32( x, (1-alfa)*e/(energy ), pB, N);
 
 				//pA = alfa*p
 				arm_scale_f32( p, alfa, pA, N);
@@ -98,7 +95,7 @@ void run_filter(uint32_t *txbuf, uint32_t *rxbuf, int M)
 				mu = mu_max*p_energy/(p_energy + C);
 				
 				//calcula o fator de adaptação.
-				arm_scale_f32(x, (mu*e)/(energy+ep),fact, N); 
+				arm_scale_f32(x, (mu*e)/(energy),fact, N); 
 				
 				//atualiza os coeficientes do filtro.
 				arm_add_f32(w, fact, w, N);
@@ -137,7 +134,7 @@ void proces_buffer(void)
 		Dt_DisableCount(DtChannel0);
 		
 		// Converte para string a diferença entre o tempo inicial e o valor do contador
-		sprintf(buffer, "\n%i", tempo_inicial - Dt_ReadCurCntVal(DtChannel0));
+		sprintf(buffer, "\n%i", tempo_inicial - Dt_ReadCurCntVal(DtChannel0) - tempo_de_medicao);
 		
 		// Passa via UART o tempo (número de clocks)
 		uart_printf(buffer);

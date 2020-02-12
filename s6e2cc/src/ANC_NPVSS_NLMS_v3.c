@@ -9,11 +9,37 @@
 #include "stdio.h"
 
 #define tempo_inicial 0x1FFFFFF
+#define tempo_de_medicao 0x32 // 50 ciclos
+
 #include "my_npvss_nlms.h"
 
 #define N   128
 
+#define length (L-1)*sizeof(float32_t)
+	
+
 char buffer[10];
+
+char uart_command;
+
+int32_t test_a;
+
+
+void confere_uart(){
+
+		// verifica se tem algo no scanf()
+		uart_scanf(&uart_command);	
+					
+		// se o uart_command for igual a '1' (enviado via UART pelo computador)
+		// reseta as variáveis do algoritmo VSS_NLMS de Benesty
+		// e torna uart_command == '0'
+		if (uart_command == '1'){
+				uart_printf("reseta as variáveis! \n");
+				init_npvss_nlms();
+				uart_command = '0';
+		}
+}
+
 
 void run_filter(uint32_t *txbuf, uint32_t *rxbuf, int M)
 {
@@ -34,19 +60,19 @@ void run_filter(uint32_t *txbuf, uint32_t *rxbuf, int M)
 				
 				//desejado
 				d = (float32_t)audio_chR;
-									
+			
 				//shift do vetor "x"		
-				memmove(&x[1], &x[0], (L-1)*sizeof(float32_t));
+				memcpy(&x[1], &x[0], length);
 	
 				//shift do vetor "error"		
-				memmove(&error[1], &error[0], (L-1)*sizeof(float32_t));
+				memcpy(&error[1], &error[0], length);
 				
 				//novo valor de referência armazenado
 				x[0]=refnoise;
-						
+
 				//estimativa gerada pelo filtro
 				arm_dot_prod_f32(x, w, L, &d_hat);
-	
+
 				//erro.
 				e = d-d_hat;
 				
@@ -56,14 +82,14 @@ void run_filter(uint32_t *txbuf, uint32_t *rxbuf, int M)
 				delta = 20*var_x;
 				
 				//////// ESTIMATIVA DA VARIÂNCIA DO SINAL DE FALA ////////
-				
-				
+
 				//variância do sinal "x".
 				arm_power_f32(x,L, &power_x);
+
 				
 				// adicionado para evitar a divisão por zero
-				if(power_x==0){power_x=1;}
-				
+				if(power_x==0){power_x=ep;}
+								
 				var_x = (1.0/L)*power_x;
 				
 				//estimativa da correlação entre "x" e "e"
@@ -78,7 +104,7 @@ void run_filter(uint32_t *txbuf, uint32_t *rxbuf, int M)
 				var_e = (1.0/L)*power_error;  
 					
 				//variância do sinal de fala (ruído de medição)
-				var_v = var_e - (power_cor_error_x/var_x);
+				var_v = var_e - (power_cor_error_x/(var_x ));
 				
 				///////////////////////////////////////////////////////
 				
@@ -105,6 +131,10 @@ void run_filter(uint32_t *txbuf, uint32_t *rxbuf, int M)
 						
 				// audio de saída
 				txbuf[ii] = audio_out;	
+			
+//				// audio de saída
+//				txbuf[ii] = rxbuf[ii];	
+				
 				ii++;
 		}
 }
@@ -132,14 +162,17 @@ void proces_buffer(void)
 		Dt_DisableCount(DtChannel0);
 		
 		// Converte para string a diferença entre o tempo inicial e o valor do contador
-		sprintf(buffer, "\n%i", tempo_inicial - Dt_ReadCurCntVal(DtChannel0));
+		sprintf(buffer, "\n%i", tempo_inicial - Dt_ReadCurCntVal(DtChannel0) - tempo_de_medicao);
 		
 		// Passa via UART o tempo (número de clocks)
 		uart_printf(buffer);
- 
+		 
 		tx_buffer_empty = 0;
     rx_buffer_full = 0;
 }
+
+
+
 
 //Main function
 int main (void) { 
@@ -155,9 +188,12 @@ int main (void) {
 				while(1);
 		};
 		
+		
+		init_npvss_nlms();
 		// inicializa o CODEC
     audio_init (hz8000, line_in, dma, DMA_HANDLER);
 	
+
 
 		while(1){
 
@@ -169,7 +205,7 @@ int main (void) {
 //				  // para contar o tempo total disponível para processameento de 128 amostras
 //				Dt_DisableCount(DtChannel0);
 //				
-//				sprintf(buffer, "\n%i", tempo_inicial - Dt_ReadCurCntVal(DtChannel0));
+//				sprintf(buffer, "\n%i", tempo_inicial - Dt_ReadCurCntVal(DtChannel0) - tempo_de_medicao);
 //				
 //				uart_printf(buffer);
 //							
@@ -179,7 +215,9 @@ int main (void) {
 					
 				// processa o buffer	
 				proces_buffer();
-
+					
+				confere_uart();
+				
 		}
 
 }
