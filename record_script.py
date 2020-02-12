@@ -31,7 +31,7 @@ uart_array_length = 10
 buffer_size = 128
 
 # diretório de trabalho/desenvolviemnto
-pasta_de_trabalho = pathlib.Path('G:/Meu Drive/Adaptive Noise Canceling/TCC/Desenvolvimento/')
+pasta_de_trabalho = pathlib.Path('C:/Users/RAFAEL/Desktop')
 
 
 # diretório dos audios
@@ -71,6 +71,8 @@ delay = np.zeros(delay)
 #%%
 # script                        GRAVAR OS AUDIOS 
 
+algoritmo = 'vss_nlms_shin'
+
 # limite inferior do teste em dB
 lim_inf_dB = -20
 
@@ -80,11 +82,9 @@ lim_sup_dB = 20
 # passo de dB em dB (de 5 em 5 --> jdB = 5)
 step_dB = 2
 
-algoritmo = 'npvss_nlms'
 
 # lista o conteudo do diretório dos audios de teste
 directory = list(audios_teste.glob('*/'))
-directory = directory[:-1]
 
 # listas
 list_noise = []
@@ -101,7 +101,7 @@ for path in directory:
     
     # lista as pastas Port_fx presentes no diretório do tipo de ruído
     path_directory = list(path.glob('*/'))    
-    path_directory = path_directory[:-1]
+
     
     # print(path_directory)
 
@@ -112,13 +112,16 @@ for path in directory:
 
         # lista os arquivos de audio de forma crescente -20 dB para 20 dB
         files = list(Port_audio.glob('*/'))
-        files = files[:-1]
+
         files.sort()
         files[0:10]=sorted(files[0:10], reverse=True)
          
         # pasta Port_fx na pasta resultados
         port_audio_path = pasta_algoritmo / Port_audio.parts[3]
        
+        show = Port_audio.parts[3]
+        print(show)
+        
         # cria pasta Port_fx
         pathlib.Path(port_audio_path).mkdir(parents=True, exist_ok=True)
         
@@ -147,7 +150,7 @@ for path in directory:
             print(show)
             
             # tamanho do buffer a ser coletado da comunicação uart
-            uart_length = round(sinal_ruido_temp.size / buffer_size * uart_array_length)
+            uart_length = int (round(sinal_ruido_temp.size / buffer_size * uart_array_length))
         
             # "abre" a comunicação UART
             ser.open()
@@ -166,7 +169,7 @@ for path in directory:
             ser.close()
             
             # processa os dados recebidos via UART (pega somente os números)
-            uart_data = [int(s) for s in a.split() if s.isdigit()]
+            uart_data = [int(s) for s in uart_data.split() if s.isdigit()]
             
             # calcular o delay entre os arquivos de audio
             r = np.correlate(sinal_ruido_temp, rec, 'full')
@@ -179,36 +182,35 @@ for path in directory:
             ref = a.index(0.0)
             
             delay_file = abs(ref - delay_file)
-            show = "delay corrected = %d samples"%(delay_file)
+            show = "corrected delay = %d samples"%(delay_file)
             print(show)
                 
             # retira a parte do dalay
             rec = rec [delay_file: len(sinal_ruido) + delay_file]
             
             # retira o delay dos dados coletados via UART
-            uart_delay = round(delay_file/(fs/buffer_size))
-            uart_data = uart_data[uart_delay : round(ruido.size/(fs/buffer_size)) + uart_delay ]
+            uart_delay =int (round(delay_file/(fs/buffer_size)))
+            uart_data = uart_data[uart_delay : int(round(ruido.size/buffer_size)) + uart_delay ]
                        
-            filename = "resultados/vss_nlms_shin/%s/vss_nlms_shin_%s.wav"%(path, snr_file)
+            filename_aux = '%s_%s.wav' %(algoritmo, snr_file)
+            filename = port_audio_path / filename_aux
             
             # salva o arquivo gravado   
             sf.write(filename, rec, fs)
             
-            
-            
             # apaga a variavel rec (por precaução)
             del rec
             
-            show = "File %s saved\nReset filter and press Enter to continue!"%(snr_file)
+            show = "File %s saved\nnext!\n"%(snr_file)
             print(show)
             
             list_snr.append(uart_data)
         
-         list_Ports.append(list_snr)
+        list_Ports.append(list_snr)
    
     list_noise.append(list_Ports)
     
-
+np.save(algoritmo, list_noise)
     
 #%%
         #%%

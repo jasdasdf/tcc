@@ -16,6 +16,23 @@
 
 char buffer[10];
 
+char uart_command;
+
+void confere_uart(){
+
+		// verifica se tem algo no scanf()
+		uart_scanf(&uart_command);	
+					
+		// se o uart_command for igual a '1' (enviado via UART pelo computador)
+		// reseta as variáveis do algoritmo VSS_NLMS de Benesty
+		// e torna uart_command == '0'
+		if (uart_command == '1'){
+				uart_printf("reseta as variáveis! \n");
+				init_vss_nlms_zipf();
+				uart_command = '0';
+		}
+}
+
 void run_filter(uint32_t *txbuf, uint32_t *rxbuf, int M)
 {
 		uint32_t audio_in, audio_out;
@@ -168,6 +185,8 @@ int main (void) {
 					
 				// processa o buffer	
 				proces_buffer();
+					
+				confere_uart();
 
 		}
 

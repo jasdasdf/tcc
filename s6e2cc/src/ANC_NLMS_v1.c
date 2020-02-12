@@ -32,6 +32,23 @@ float32_t MU = 0.05;
 
 char buffer[10];
 
+char uart_command;
+
+void confere_uart(){
+
+		// verifica se tem algo no scanf()
+		uart_scanf(&uart_command);	
+					
+		// se o uart_command for igual a '1' (enviado via UART pelo computador)
+		// reseta as variáveis do algoritmo VSS_NLMS de Benesty
+		// e torna uart_command == '0'
+		if (uart_command == '1'){
+				uart_printf("reseta as variáveis! \n");
+				arm_fill_f32( 0.0, w, N);
+				arm_fill_f32( 0.0, x, N);			
+				uart_command = '0';
+		}
+}
 
 void run_filter(uint32_t *txbuf, uint32_t *rxbuf, int M)
 {
@@ -166,6 +183,8 @@ int main (void) {
 					
 				// processa o buffer	
 				proces_buffer();
+					
+				confere_uart();
 
 		}
 
