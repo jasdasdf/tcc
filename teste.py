@@ -66,3 +66,15 @@ l.append(c)
 
 np.save("test", l)
 
+
+#%%
+
+
+from scipy.io import wavfile
+from pesq import pesq
+
+rate, deg = wavfile.read("C:/Users/RAFAEL/Desktop/resultados/balburdia/nlms/Port_f1/nlms_00_dB.wav")
+rate, ref = wavfile.read("C:/Users/RAFAEL/Desktop/referencia/audios_ajustados/balburdia/Port_f1/audios_ajustados_00_dB.wav")
+
+# print(pesq(rate, ref, deg, 'wb'))
+print(pesq(rate, ref, deg, 'nb'))

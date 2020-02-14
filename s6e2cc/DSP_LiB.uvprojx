@@ -384,9 +384,9 @@
           <GroupName>src</GroupName>
           <Files>
             <File>
-              <FileName>ANC_foward.c</FileName>
+              <FileName>ANC_NLMS_v1.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\src\ANC_foward.c</FilePath>
+              <FilePath>.\src\ANC_NLMS_v1.c</FilePath>
             </File>
           </Files>
         </Group>
