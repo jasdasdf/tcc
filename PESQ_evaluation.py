@@ -29,6 +29,7 @@ import sys
 import matplotlib.pyplot as plt
 # import soundfile as sf # https://pysoundfile.readthedocs.io/en/0.9.0/
 import pathlib
+import pathlib
 
 #%%
 
@@ -174,7 +175,7 @@ for i in diretorio:
             # remove o arquivo
             os.remove(rename)
     
-
+#%%
         
 #                           PESQ REFERÊNCIA
         
@@ -261,7 +262,7 @@ for i in diretorio:
         os.remove(rename)
 
         
-#%%
+
                        ## EXTRAIR OS DADOS DOS ARQUIVOS .txt
             
 # diretório de trabalho/desenvolviemnto
@@ -368,7 +369,11 @@ np.save(filename, resultado_PESQ)
 # cores hexadecimal
 #http://erikasarti.com/html/tabela-cores/
 
-# os.chdir("G:/Meu Drive/Adaptive Noise Canceling/Estágio/Python_02/data_saved/PESQ")
+# abre o arquivo dos resultados da PESQ
+# pasta_PESQ = resultados_metricas / 'PESQ'
+# filename = pasta_PESQ / 'PESQ.npy'
+# resultado_PESQ = np.load(filename)
+
 # tamanho da figura
 plt.rcParams['figure.figsize'] = (5.54, 3.3622)
 

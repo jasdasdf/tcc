@@ -65,49 +65,22 @@ void proces_buffer(void)
     if(rx_proc_buffer == PING) rxbuf = dma_rx_buffer_ping; 
     else rxbuf = dma_rx_buffer_pong; 
 
-		// escreve no timer o tempo inicial (número inicial) de contagem (decrescente)
-		Dt_WriteLoadVal(tempo_inicial, DtChannel0);
-	
-		// Habilita a contagem
-		Dt_EnableCount(DtChannel0);
-	
 		// Filtro projetado
 		while(i<N){
 				txbuf[i] = rxbuf[i];
 				i++;
 		}
 		
-		// Desabilita a contagem
-		Dt_DisableCount(DtChannel0);
-		
-		// Converte para string a diferença entre o tempo inicial e o valor do contador
-		sprintf(buffer, "\n%i", tempo_inicial - Dt_ReadCurCntVal(DtChannel0) - tempo_de_medicao);
-		
-		// Passa via UART o tempo (número de clocks)
-		uart_printf(buffer);
-	   				
     tx_buffer_empty = 0;
     rx_buffer_full = 0;
 }
 
 //Main function
 int main (void) { 
-    
-		// inicializa a comunicação UART - apenas o printf (saída)
-		Uart_Io_Init();/* Initializatio of the UART unit and GPIO used in the communication */
-		
-		// inicializa o dual timer, se não iniciar corretamente 
-		// apresenta uma mensagem de erro
-  	if (my_dt() != 0)
-		{
-				uart_printf("erro na conffiguração do dual timer!\n");
-				while(1);
-		};
-		
+
 		// inicializa o CODEC
     audio_init (hz8000, line_in, dma, DMA_HANDLER);
 	
-
 		while(1){
 
 				// enquanto o buffer de recepção não estiver cheio 
@@ -115,21 +88,7 @@ int main (void) {
 			
 				while (!(rx_buffer_full && tx_buffer_empty)){};
 
-//					// para contar o tempo total disponível para processameento de 128 amostras
-//				Dt_DisableCount(DtChannel0);
-//				
-//				sprintf(buffer, "\n%i", tempo_inicial - Dt_ReadCurCntVal(DtChannel0));
-//				
-//				uart_printf(buffer);
-//							
-//				Dt_WriteLoadVal(tempo_inicial, DtChannel0);
-//			
-//				Dt_EnableCount(DtChannel0);
-					
-				// processa o buffer	
 				proces_buffer();
-					
-				confere_uart();
 
 		}
 

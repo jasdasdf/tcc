@@ -218,7 +218,7 @@ np.save(algoritmo, list_noise)
 
                  ## AUDIOS ITUT P50 CONTAMINADOS NO DOMÍNIO DA PLACA (CODEC PLACA)
 
-# modo de operação no kit
+# modo de operação no kit  
 algoritmo = 'audios_contaminados'
 
 # pasta a ser criada para os audios de referência
