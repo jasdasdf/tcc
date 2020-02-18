@@ -78,3 +78,13 @@ rate, ref = wavfile.read("C:/Users/RAFAEL/Desktop/referencia/audios_ajustados/ba
 
 # print(pesq(rate, ref, deg, 'wb'))
 print(pesq(rate, ref, deg, 'nb'))
+
+#%%
+
+import pickle
+
+with open(filename, 'w') as f:
+    pickle.dump(dicionario, f)
+
+
+
