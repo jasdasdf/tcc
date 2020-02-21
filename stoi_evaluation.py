@@ -101,7 +101,7 @@ for i in diretorio:
        
         # cria a pasta do algoritmo na pasta do ruido em analise         
         pasta_algoritmo = pasta_ruido / algoritmo
-        pathlib.Path(pasta_algoritmo).mkdir(parents=True, exist_ok=True)
+        # pathlib.Path(pasta_algoritmo).mkdir(parents=True, exist_ok=True)
         
         # mostra o algoritmo em analise
         print("Algorimto %s em análise\n"%algoritmo)
@@ -162,21 +162,41 @@ np.save(filename, resultado_STOI)
 #%%
 #    figure generation
     
-    # introdução aos gráficos utilizando python  
-# http://donald.catalao.ufg.br/up/633/o/introducaoAosGraficos.pdf?1417367842
+import linse_utils as utils
+import pickle
+import numpy as np
 
-# tutorial matplotlib
-#https://matplotlib.org/tutorials/introductory/usage.html#sphx-glr-tutorials-introductory-usage-py
+import matplotlib.pyplot as plt
 
-# cores hexadecimal
-#http://erikasarti.com/html/tabela-cores/
 
+# limite inferior do teste em dB
+lim_inf_dB = -12
+
+# limite superior do teste em dB
+lim_sup_dB = 20
+
+# passo de dB em dB (de 5 em 5 --> jdB = 5)
+step_dB = 2
+
+# diretório de trabalho
+pasta_de_trabalho = pathlib.Path('C:/Users/RAFAEL/Desktop')
+
+# pasta dos resultados
+pasta_audios_resultados = pasta_de_trabalho / 'resultados'
+
+# destino dos arquivos
+resultados_metricas = pasta_de_trabalho / 'resultado_metricas'
+
+# pasta dos resultados da metodologia utilizando STOI
+pasta_STOI = resultados_metricas / 'STOI'
+
+filename = pasta_STOI / 'STOI.npy'
+
+
+resultado_STOI = np.load(filename, allow_pickle=True)
 
 # tamanho da figura
-plt.rcParams['figure.figsize'] = (5.54, 3.3622)
-
-# tipo de fonte times new roman    
-plt.rcParams["font.family"] = "Times New Roman"
+# plt.rcParams['figure.figsize'] = (5.54, 3.3622)
 
 # tamanho da fonte da legenda
 plt.rcParams['legend.fontsize'] = 10
@@ -188,69 +208,63 @@ label_jo_nlms = "JO-NLMS"
 label_vss_nlms = "VSS NLMS de Shin"
 label_vss_nlms_zipf = "VSS NLMS de Zipf"
 
-ruido = 0
+for ruido in range(len(resultado_STOI)):
 
-STOI_result = resultado_STOI[ruido][1]
-
-Title =  resultado_STOI[ruido][0]
-
-for i in range(len(STOI_result)):
-    legend = STOI_result[i][0]
-    y = STOI_result[i][1][:]
-    x = range(lim_inf_dB, lim_sup_dB + 1, step_dB)
+    STOI_result = resultado_STOI[ruido][1]
     
-    if legend =='nlms':
-        legend1 = label_nlms
-        line1, = plt.plot(x, y, '-', marker = None,  color=[0,0,0], linewidth=1.2)
+    Title =  resultado_STOI[ruido][0]
+    
+    print(Title)
+    
+    fig, ax = plt.subplots()
+    
+    for i in range(len(STOI_result)):
+        legend = STOI_result[i][0]
+        y = STOI_result[i][1][:]
+        y = y[4:]
+        x = range(lim_inf_dB, lim_sup_dB + 1, step_dB)
         
-    elif legend =='vss_nlms_shin':
-        legend2 = label_vss_nlms
-        line2, = plt.plot(x, y, '-.', marker = None,  color=[0,0,0], linewidth=1.2)        
-    
-    elif legend == 'npvss_nlms':
-        legend3 = label_npvss
-        line3, = plt.plot(x, y, '--', marker = None,  color=[0,0,0], linewidth=1.2)
-    
-    elif legend == 'vss_nlms_zipf':
-        legend4 = label_vss_nlms_zipf
-        line4, = plt.plot(x, y, ':', marker = None,  color=[0,0,0], linewidth=1.2)        
+        
+        if legend =='nlms':
+            legend1 = label_nlms
+            line1, = ax.plot(x, y, '-', marker = None,  color=[0,0,0], linewidth=1.2)
             
-    elif legend =='audios_contaminados':
-        legend5 = label_error
-        line5, = plt.plot(x, y, ':', marker = '+',  color=[0,0,0], linewidth=1.2)
+        elif legend =='vss_nlms_shin':
+            legend2 = label_vss_nlms
+            line2, =ax.plot(x, y, '-.', marker = None,  color=[0,0,0], linewidth=1.2)        
+        
+        elif legend == 'npvss_nlms':
+            legend3 = label_npvss
+            line3, = ax.plot(x, y, '--', marker = None,  color=[0,0,0], linewidth=1.2)
+            
+        elif legend == 'vss_nlms_zipf':
+            legend4 = label_vss_nlms_zipf
+            line4, = ax.plot(x, y, ':', marker = None,  color=[0,0,0], linewidth=1.2)        
+                
+        elif legend =='audios_contaminados':
+            legend5 = label_error
+            line5, = ax.plot(x, y, '-', marker = '^',  markersize=3.5, color=[0,0,0], linewidth=1.2)
     
-#ax1.plot(x, y1, color=[0.5, 0.5, 0.5], linewidth=1.2)
-plt.xlabel('SNR (dB)', fontsize=10), plt.ylabel('PESQ - LQO', fontsize=10)
+    ax.set_ylabel('STOI')
+    ax.set_xlabel('SNR (dB)')
+    ax.axis([lim_inf_dB, lim_sup_dB,0,1])
+    
+    ax.set_xticks(np.arange(lim_inf_dB, lim_sup_dB + 1, 4 ))
+    ax.set_yticks(np.arange(0, 1.01, 0.25))
+    
+    ax.legend((line1, line2, line3, line4, line5), (legend1, legend2, legend3, legend4, legend5),
+              loc='lower right', fontsize=7)
+    
+    
+    
+    fig = utils.format_figure(fig, figsize=(9,5.5))
+    
+    filename = "STOI_%s.pdf"%Title
+    fig.savefig(filename, format='pdf')
 
-# 
-plt.title(Title, loc='center')  
-
-
-# melhor lugar de legenda
-#
-plt.legend((line1, line2, line3, line4, line5), (legend1, legend2, legend3, legend4, legend5), loc='lower right')
-
-# grades
-#plt.grid()
-
-snr = list(x)
-#plt.xticks(snr,[str(i) for i in snr], fontsize=12)
-plt.xticks(np.arange(-20, 21, 4 ), fontsize=8)
-plt.yticks(np.arange(0, 1, 0.1), fontsize=8)
-
-# limite dos eixos
-plt.axis([lim_inf_dB, lim_sup_dB, 0, 1], option='image')
-
-#plt.show()
-
-#%%
-
-#salvar figura
-#https://matplotlib.org/api/_as_gen/matplotlib.pyplot.savefig.html
-#plt.savefig('result.jpg')
-
-plt.savefig("./stoi_result.svg")
-
-plt.savefig("./stoi_result.jpg")
-
+# fig.savefig('plot_paper(9x5.5).pdf', format='pdf')
+# fig.savefig('plot_paper(9x5.5).png', format='png')
+# fig.savefig('plot_paper(9x5.5).eps', format='eps')
+# fig.savefig('plot_screen(16x10).pdf', format='pdf')
+# fig.savefig('plot_screen(16x10).png', format='png')
     
